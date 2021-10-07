@@ -3,10 +3,11 @@ import router, { useRouter } from "next/router";
 import { useAuth } from "@lib/contexts/useAuth";
 
 export default function LoginForm() {
-  const { user, loginWithEmail } = useAuth();
+  const { user, loginWithEmail, loginWithGithub, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  //change input
   const onChange = (e) => {
     const { name, value } = e.target;
     if (name == "email") {
@@ -15,10 +16,11 @@ export default function LoginForm() {
       setPassword(value);
     }
   };
+
+  //submit email & password login
   const onSubmit = (e) => {
     e.preventDefault();
     try {
-      let data;
       //TODO: need more validation for email & password
       if (!user && email.length > 0 && password.length > 0) {
         loginWithEmail(email, password)
@@ -28,6 +30,38 @@ export default function LoginForm() {
           })
           .catch((error) => {
             alert("no user. you need to sign up");
+          });
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  //onClick social login
+  const onClickSocialLogin = async (e) => {
+    const { name } = e.target;
+    try {
+      if (name == "google") {
+        loginWithGoogle()
+          .then((res) => {
+            alert("login");
+            router.push("/");
+          })
+          .catch((error) => console.log(error));
+      } else if (name == "github") {
+        loginWithGithub()
+          .then((res) => {
+            alert("login");
+            router.push("/");
+          })
+          .catch((error) => {
+            if (
+              error
+                .toString()
+                .includes("account-exists-with-different-credential")
+            ) {
+              alert("already signed with this credentials");
+            }
           });
       }
     } catch (e) {
@@ -56,8 +90,12 @@ export default function LoginForm() {
         <input type="submit" value="login" onClick={onSubmit} />
       </form>
       <div>
-        <button>google login</button>
-        <button>github login</button>
+        <button name="google" onClick={onClickSocialLogin}>
+          google login
+        </button>
+        <button name="github" onClick={onClickSocialLogin}>
+          github login
+        </button>
       </div>
     </div>
   );
